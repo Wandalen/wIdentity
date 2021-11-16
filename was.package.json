@@ -1,0 +1,49 @@
+{
+  "name": "widentity",
+  "version": "0.2.180",
+  "description": "Utility to manage profiles for different utilities.",
+  "author": "Kostiantyn Wandalen <wanalen@01.school>",
+  "contributors": [
+    "Kostiantyn Wandalen <wanalen@01.school>",
+    "Dmytro Kryvoruchko <dm.vict.kr@gmail.com>"
+  ],
+  "license": "MIT",
+  "main": "proto/node_modules/widentity",
+  "files": [
+    "proto/wtools/atop/identity",
+    "proto/node_modules",
+    "proto/node_modules/Tools",
+    "proto/node_modules/widentity"
+  ],
+  "scripts": {
+    "test": "wtest .run 'proto/**' rapidity:-3",
+    "docgen": "wdocgen .build proto"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Wandalen/wIdentity.git"
+  },
+  "bin": {
+    "identity.singleproc": "proto/wtools/atop/censor/entry/Exec",
+    "identity.debug": "proto/wtools/atop/censor/entry/ExecDebug",
+    "identity.unrestricted": "proto/wtools/atop/censor/entry/ExecUnrestricted",
+    "identity": "proto/wtools/atop/censor/entry/ExecUnrestricted"
+  },
+  "bugs": {
+    "url": "https://github.com/Wandalen/wIdentity/issues"
+  },
+  "dependencies": {
+    "wTools": "",
+    "wCopyable": "",
+    "wcensorbasic": "",
+    "widentitybasic": "",
+    "wcommandsaggregator": ""
+  },
+  "devDependencies": {
+    "wTesting": "",
+    "eslint": "7.32.0"
+  },
+  "keywords": [
+    "wTools"
+  ]
+}
