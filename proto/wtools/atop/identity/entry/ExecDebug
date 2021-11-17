@@ -1,0 +1,16 @@
+#! /usr/bin/env node
+
+if( typeof module !== 'undefined' )
+{
+  const _ = require( '../../../../node_modules/Tools' );
+  _.include( 'wProcess' );
+  _.include( 'wFiles' );
+}
+
+const _ = _global_.wTools;
+let shell = _.process.startPassingThrough
+({
+  execPath : 'debugnode',
+  args : [ _.path.nativize( _.path.join( __dirname, 'Exec' ) ) ],
+  stdio : 'pipe',
+});

@@ -1,0 +1,5 @@
+#! /usr/bin/env node
+
+const _ = require( '../include/Top.s' );
+module[ 'exports' ] = _;
+_.censor.Cui.Exec();
