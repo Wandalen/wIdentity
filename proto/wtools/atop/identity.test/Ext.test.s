@@ -39,9 +39,8 @@ function onSuiteEnd()
 
 function identityList( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   /* - */
@@ -92,9 +91,8 @@ function identityList( test )
 
 function identityCopy( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   /* - */
@@ -134,9 +132,8 @@ function identityCopy( test )
 
 function identitySet( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   /* - */
@@ -226,9 +223,8 @@ function identitySet( test )
 
 function identityNew( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   /* - */
@@ -293,9 +289,8 @@ function identityNew( test )
 
 function gitIdentityNew( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   /* - */
@@ -350,9 +345,8 @@ function gitIdentityNew( test )
 
 function npmIdentityNew( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   /* - */
@@ -407,12 +401,12 @@ function npmIdentityNew( test )
 
 function identityFromGit( test )
 {
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
 
   if( !_.process.insideTestContainer() )
   return test.true( true );
 
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.fileProvider.dirMake( a.abs( '.' ) );
 
   const originalConfig = a.fileProvider.fileRead( a.fileProvider.configUserPath( '.gitconfig' ) );
@@ -427,24 +421,26 @@ function identityFromGit( test )
 
   a.appStart( `.imply profile:${profile} .git.identity.new user login:userLogin email:'user@domain.com'` );
   a.appStart( `.imply profile:${profile} .git.identity.use user` );
-  a.appStart( `.imply profile:${profile} .config.get identity/git` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { 'git.login' : 'userLogin', 'git.email' : 'user@domain.com', 'type' : 'git' } );
+    test.identical( config.identity.git, undefined );
     return null;
   });
   a.appStart( `.imply profile:${profile} .identity.from.git git` )
-  a.appStart( `.imply profile:${profile} .config.get identity/git` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ type : git, git.login : userLogin, git.email : user@domain.com }' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { 'git.login' : 'userLogin', 'git.email' : 'user@domain.com', 'type' : 'git' } );
+    test.identical( config.identity.git, { 'git.login' : 'userLogin', 'git.email' : 'user@domain.com', 'type' : 'git' } );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
-  /* - */
+  /* */
 
   a.ready.then( ( op ) =>
   {
@@ -454,26 +450,30 @@ function identityFromGit( test )
 
   a.appStart( `.imply profile:${profile} .identity.new user login:userLogin email:'user@domain.com' type:git` );
   a.appStart( `.imply profile:${profile} .git.identity.use user` );
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : userLogin, email : user@domain.com, type : git }' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { login : 'userLogin', email : 'user@domain.com', type : 'git' } );
     return null;
   });
   a.appStart( `.imply profile:${profile} .identity.from.git user force:1` );
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, 'login : userLogin' ), 2 );
-    test.identical( _.strCount( op.output, 'email : user@domain.com' ), 2 );
-    test.identical( _.strCount( op.output, 'type : git' ), 1 );
-    test.identical( _.strCount( op.output, 'git.login : userLogin' ), 1 );
-    test.identical( _.strCount( op.output, 'git.email : user@domain.com' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    var exp =
+    {
+      'login' : 'userLogin',
+      'email' : 'user@domain.com',
+      'type' : 'git',
+      'git.login' : 'userLogin',
+      'git.email' : 'user@domain.com',
+    };
+    test.identical( config.identity.user, exp );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -481,7 +481,7 @@ function identityFromGit( test )
   {
     a.fileProvider.fileWrite( a.fileProvider.configUserPath( '.gitconfig' ), originalConfig );
     return null;
-  })
+  });
 
   /* - */
 
@@ -495,9 +495,9 @@ function identityFromSsh( test )
   if( !_.process.insideTestContainer() )
   return test.true( true );
 
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.fileProvider.dirMake( a.abs( '.' ) );
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   const userProfileDir = a.fileProvider.configUserPath( `.censor/${ profile }` );
   let originalExists = false;
   const originalPath = a.fileProvider.configUserPath( '.ssh' );
@@ -598,9 +598,8 @@ function identityFromSsh( test )
 
 function identityRemove( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   /* - */
@@ -664,9 +663,8 @@ function identityRemove( test )
 
 function gitIdentityScript( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   let script =
@@ -725,9 +723,8 @@ module.exports = onIdentity;
 
 function npmIdentityScript( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   let script =
@@ -786,9 +783,8 @@ module.exports = onIdentity;
 
 function sshIdentityScript( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   let script =
@@ -845,9 +841,8 @@ module.exports = onIdentity;
 
 function gitIdentityScriptSet( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   let script =
@@ -892,9 +887,8 @@ module.exports = onIdentity;
 
 function npmIdentityScriptSet( test )
 {
-  let context = this;
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.reflect();
 
   let script =
@@ -942,9 +936,9 @@ function sshIdentityScriptSet( test )
   if( !_.process.insideTestContainer() )
   return test.true( true );
 
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.fileProvider.dirMake( a.abs( '.' ) );
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   const userProfileDir = a.fileProvider.configUserPath( `.censor/${ profile }` );
   let originalExists = false;
   const originalPath = a.fileProvider.configUserPath( '.ssh' );
@@ -1046,13 +1040,13 @@ module.exports = onIdentity;
 function gitIdentityUse( test )
 {
   const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
 
   if( !_.process.insideTestContainer() )
   return test.true( true );
 
   a.fileProvider.dirMake( a.abs( '.' ) );
   const originalConfig = a.fileProvider.fileRead( a.fileProvider.configUserPath( '.gitconfig' ) );
-  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
 
   const script =
 `
@@ -1192,8 +1186,8 @@ module.exports = onIdentity;
 function npmIdentityUse( test )
 {
   const a = test.assetFor( false );
-  a.fileProvider.dirMake( a.abs( '.' ) );
   const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
+  a.fileProvider.dirMake( a.abs( '.' ) );
 
   const script =
 `
@@ -1254,9 +1248,9 @@ function sshIdentityUse( test )
   if( !_.process.insideTestContainer() )
   return test.true( true );
 
-  let a = test.assetFor( false );
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   a.fileProvider.dirMake( a.abs( '.' ) );
-  let profile = `censor-test-${ __.intRandom( 1000000 ) }`;
   const userProfileDir = a.fileProvider.configUserPath( `.censor/${ profile }` );
   let originalExists = false;
   const originalPath = a.fileProvider.configUserPath( '.ssh' );
