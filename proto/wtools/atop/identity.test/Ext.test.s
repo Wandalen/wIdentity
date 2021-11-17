@@ -1166,7 +1166,7 @@ module.exports = onIdentity;
   //   test.identical( op.output, '' );
   //   return null;
   // });
-  // a.appStart( `.profile.del profile:${profile}` );
+  // a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -1217,7 +1217,7 @@ module.exports = onIdentity;
     test.identical( _.strCount( op.output, '{ login: \'userLogin\', type: \'npm\', email: \'user@domain.com\' }' ), 1 );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -1236,7 +1236,7 @@ module.exports = onIdentity;
   //   test.identical( _.strCount( op.output, '{ login: \'userLogin\', email: \'user@domain.com\', type: \'general\' }' ), 1 );
   //   return null;
   // });
-  // a.appStart( `.profile.del profile:${profile}` );
+  // a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* - */
 
