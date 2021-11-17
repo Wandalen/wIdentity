@@ -239,19 +239,15 @@ function identityNew( test )
     return null;
   });
 
-  a.appStart( `.imply profile:${profile} .identity.new user2 login:userLogin type:git` )
-  .then( ( op ) =>
+  a.appStart( `.imply profile:${profile} .identity.new user login:userLogin type:git` );
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { login : 'userLogin', type : 'git' } );
     return null;
   });
-  a.appStart( `.imply profile:${profile} .config.get identity/user2` )
-  .then( ( op ) =>
-  {
-    test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : userLogin, type : git }' ), 1 );
-    return null;
-  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -261,27 +257,27 @@ function identityNew( test )
     return null;
   });
 
-  a.appStart( `.imply profile:${profile} .identity.new user3 login:userLogin type:git email:user@domain.com token:123` )
-  .then( ( op ) =>
+  a.appStart( `.imply profile:${profile} .identity.new user login:userLogin type:git email:user@domain.com token:123` )
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    var exp =
+    {
+      login : 'userLogin',
+      type : 'git',
+      email : 'user@domain.com',
+      token : 123
+    };
+    test.identical( config.identity.user, exp );
     return null;
   });
-  a.appStart( `.imply profile:${profile} .config.get identity/user3` )
-  .then( ( op ) =>
-  {
-    test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, 'login : userLogin,' ), 1 );
-    test.identical( _.strCount( op.output, 'type : git,' ), 1 );
-    test.identical( _.strCount( op.output, 'email : user@domain.com,' ), 1 );
-    test.identical( _.strCount( op.output, 'token : 123' ), 1 );
-    return null;
-  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* - */
 
-  a.appStartNonThrowing( `.imply profile:${profile} .identity.new user login:userLogin` )
-  .then( ( op ) =>
+  a.appStartNonThrowing( `.imply profile:${profile} .identity.new user login:userLogin` );
+  a.ready.then( ( op ) =>
   {
     test.case = 'declared no type';
     test.notIdentical( op.exitCode, 0 );
@@ -290,7 +286,6 @@ function identityNew( test )
 
   /* - */
 
-  a.appStart( `.profile.del profile:${profile}` );
   return a.ready;
 }
 
@@ -311,19 +306,15 @@ function gitIdentityNew( test )
     return null;
   });
 
-  a.appStart( `.imply profile:${profile} .git.identity.new user login:userLogin` )
-  .then( ( op ) =>
+  a.appStart( `.imply profile:${profile} .git.identity.new user login:userLogin` );
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { 'git.login' : 'userLogin', 'type' : 'git' } );
     return null;
   });
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
-  {
-    test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ git.login : userLogin, type : git }' ), 1 );
-    return null;
-  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -333,26 +324,25 @@ function gitIdentityNew( test )
     return null;
   });
 
-  a.appStart( `.imply profile:${profile} .git.identity.new user2 login:userLogin email:user@domain.com token:123` )
-  .then( ( op ) =>
+  a.appStart( `.imply profile:${profile} .git.identity.new user login:userLogin email:user@domain.com token:123` );
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    var exp =
+    {
+      'git.login' : 'userLogin',
+      'type' : 'git',
+      'git.email' : 'user@domain.com',
+      'git.token' : 123
+    };
+    test.identical( config.identity.user, exp );
     return null;
   });
-  a.appStart( `.imply profile:${profile} .config.get identity/user2` )
-  .then( ( op ) =>
-  {
-    test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, 'git.login : userLogin,' ), 1 );
-    test.identical( _.strCount( op.output, 'type : git' ), 1 );
-    test.identical( _.strCount( op.output, 'git.email : user@domain.com,' ), 1 );
-    test.identical( _.strCount( op.output, 'git.token : 123' ), 1 );
-    return null;
-  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* - */
 
-  a.appStart( `.profile.del profile:${profile}` );
   return a.ready;
 }
 
