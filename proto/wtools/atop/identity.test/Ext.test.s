@@ -1084,7 +1084,7 @@ module.exports = onIdentity;
     test.identical( _.strCount( op.output, 'url.https://userLogin@bitbucket.org.insteadof=https://bitbucket.org' ), 1 );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -1113,7 +1113,7 @@ module.exports = onIdentity;
     test.identical( _.strCount( op.output, 'url.https://userLogin2@bitbucket.org.insteadof=https://bitbucket.org' ), 1 );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -1139,7 +1139,7 @@ module.exports = onIdentity;
     test.identical( op.output, '' );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
