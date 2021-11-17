@@ -1291,7 +1291,7 @@ module.exports = onIdentity;
     test.identical( _.strCount( op.output, `'ssh.path': '.censor/${profile}/ssh/user'` ), 1 );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -1315,7 +1315,7 @@ module.exports = onIdentity;
   //   test.identical( _.strCount( op.output, `'ssh.path': '.censor/${profile}/ssh/user'` ), 1 );
   //   return null;
   // });
-  // a.appStart( `.profile.del profile:${profile}` );
+  // a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
