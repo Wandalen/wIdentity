@@ -148,22 +148,22 @@ function identitySet( test )
   });
 
   a.appStart( `.imply profile:${profile} .identity.new user login:userLogin type:git` );
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : userLogin, type : git }' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { login : 'userLogin', type : 'git' } );
     return null;
   });
-  a.appStart( `.imply profile:${profile} .identity.set user login:user type:npm` )
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.appStart( `.imply profile:${profile} .identity.set user login:user type:npm` );
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : user, type : npm }' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { login : 'user', type : 'npm' } );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -174,22 +174,22 @@ function identitySet( test )
   });
 
   a.appStart( `.imply profile:${profile} .identity.new user login:userLogin type:git` );
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : userLogin, type : git }' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { login : 'userLogin', type : 'git' } );
     return null;
   });
-  a.appStart( `.imply profile:${profile} .identity.set user login:user` )
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.appStart( `.imply profile:${profile} .identity.set user login:user` );
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : user, type : git }' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { login : 'user', type : 'git' } );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -200,22 +200,22 @@ function identitySet( test )
   });
 
   a.appStart( `.imply profile:${profile} .identity.new user login:userLogin type:git` );
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : userLogin, type : git }' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { login : 'userLogin', type : 'git' } );
     return null;
   });
-  a.appStart( `.imply profile:${profile} .identity.set user 'npm.login':user` )
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.appStart( `.imply profile:${profile} .identity.set user 'npm.login':user` );
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : userLogin, type : git, npm.login : user }' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { 'login' : 'userLogin', 'type' : 'git', 'npm.login' : 'user' } );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* - */
 
