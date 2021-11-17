@@ -924,7 +924,7 @@ module.exports = onIdentity;
     test.identical( _.strCount( op.output, '{ type: \'npm\', login: \'userLogin\', email: \'user@domain.com\' }' ), 1 );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* - */
 
