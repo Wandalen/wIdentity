@@ -514,32 +514,44 @@ function identityFromSsh( test )
   });
   writeKey( 'id_rsa' );
   a.appStart( `.imply profile:${profile} .identity.from.ssh user` )
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    var exp =
+    {
+      'ssh.login' : 'user',
+      'type' : 'ssh',
+      'ssh.path' : `.censor/${profile}/ssh/user`,
+    };
+    test.identical( config.identity.user, exp );
     var files = a.find( userProfileDir );
     test.identical( files, [ '.', './config.yaml', './ssh', './ssh/user', './ssh/user/id_rsa' ] );
-    test.identical( _.strCount( op.output, `{ type : ssh, ssh.login : user, ssh.path : .censor/${profile}/ssh/user }` ), 1 );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
   writeKey( 'id_rsa' );
   a.appStart( `.imply profile:${profile} .identity.from.ssh user` );
   a.appStart( `.imply profile:${profile} .identity.from.ssh user force:1` );
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    var exp =
+    {
+      'ssh.login' : 'user',
+      'type' : 'ssh',
+      'ssh.path' : `.censor/${profile}/ssh/user`,
+    };
+    test.identical( config.identity.user, exp );
     var files = a.find( userProfileDir );
     test.identical( files, [ '.', './config.yaml', './ssh', './ssh/user', './ssh/user/id_rsa' ] );
-    test.identical( _.strCount( op.output, `{ type : ssh, ssh.login : user, ssh.path : .censor/${profile}/ssh/user }` ), 1 );
     return null;
   });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
