@@ -81,6 +81,7 @@ function identityList( test )
     test.identical( _.strCount( op.output, 'type : git' ), 2 );
     return null;
   });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* - */
 
@@ -105,27 +106,24 @@ function identityCopy( test )
   });
 
   a.appStart( `.imply profile:${profile} .identity.new user login:userLogin type:git` );
-  a.appStart( `.imply profile:${profile} .identity.copy user user2` )
-  .then( ( op ) =>
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { login : 'userLogin', type : 'git' } );
+    test.identical( config.identity.user2, undefined );
     return null;
   });
-  a.appStart( `.imply profile:${profile} .config.get identity/user` )
-  .then( ( op ) =>
+  a.appStart( `.imply profile:${profile} .identity.copy user user2` );
+  a.ready.then( ( op ) =>
   {
     test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : userLogin, type : git }' ), 1 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { login : 'userLogin', type : 'git' } );
+    test.identical( config.identity.user, config.identity.user2 );
     return null;
   });
-  a.appStart( `.imply profile:${profile} .config.get identity/user2` )
-  .then( ( op ) =>
-  {
-    test.identical( op.exitCode, 0 );
-    test.identical( _.strCount( op.output, '{ login : userLogin, type : git }' ), 1 );
-    return null;
-  });
-  a.appStart( `.profile.del profile:${profile}` );
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* - */
 
