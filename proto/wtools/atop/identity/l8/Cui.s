@@ -69,49 +69,53 @@ function exec()
 // meta commands
 // --
 
-function _commandsMake()
+function _commandsMake( context )
 {
-  let cui = this;
-  let appArgs = _.process.input();
+  const cui = this;
 
   _.assert( _.instanceIs( cui ) );
+
+  if( arguments.length === 1 )
+  _.assert( _.instanceIs( context ) );
+  else
   _.assert( arguments.length === 0 );
+
+  context = context || cui;
 
   let commands =
   {
-    'help' :                    { ro : _.routineJoin( cui, cui.commandHelp ) },
-    'version' :                 { ro : _.routineJoin( cui, cui.commandVersion ) },
-    'imply' :                   { ro : _.routineJoin( cui, cui.commandImply ) },
+    'help' :                    { ro : _.routineJoin( context, cui.commandHelp ) },
+    'version' :                 { ro : _.routineJoin( context, cui.commandVersion ) },
+    'imply' :                   { ro : _.routineJoin( context, cui.commandImply ) },
 
-    'identity list' :           { ro : _.routineJoin( cui, cui.commandIdentityList ) },
-    'identity copy' :           { ro : _.routineJoin( cui, cui.commandIdentityCopy ) },
-    'identity set' :            { ro : _.routineJoin( cui, cui.commandIdentitySet ) },
-    'identity new' :            { ro : _.routineJoin( cui, cui.commandIdentityNew ) },
-    'super identity new' :      { ro : _.routineJoin( cui, cui.commandSuperIdentityNew ) },
-    'git identity new' :        { ro : _.routineJoin( cui, cui.commandGitIdentityNew ) },
-    'npm identity new' :        { ro : _.routineJoin( cui, cui.commandNpmIdentityNew ) },
-    'identity from git' :       { ro : _.routineJoin( cui, cui.commandIdentityFromGit ) },
-    'identity from ssh' :       { ro : _.routineJoin( cui, cui.commandIdentityFromSsh ) },
-    'identity remove' :         { ro : _.routineJoin( cui, cui.commandIdentityRemove ) },
-    'git identity script' :     { ro : _.routineJoin( cui, cui.commandGitIdentityScript ) },
-    'npm identity script' :     { ro : _.routineJoin( cui, cui.commandNpmIdentityScript ) },
-    'ssh identity script' :     { ro : _.routineJoin( cui, cui.commandSshIdentityScript ) },
-    'git identity script set' : { ro : _.routineJoin( cui, cui.commandGitIdentityScriptSet ) },
-    'npm identity script set' : { ro : _.routineJoin( cui, cui.commandNpmIdentityScriptSet ) },
-    'ssh identity script set' : { ro : _.routineJoin( cui, cui.commandSshIdentityScriptSet ) },
-    'super identity use' :      { ro : _.routineJoin( cui, cui.commandSuperIdentityUse ) },
-    'git identity use' :        { ro : _.routineJoin( cui, cui.commandGitIdentityUse ) },
-    'npm identity use' :        { ro : _.routineJoin( cui, cui.commandNpmIdentityUse ) },
-    'ssh identity use' :        { ro : _.routineJoin( cui, cui.commandSshIdentityUse ) },
+    'identity list' :           { ro : _.routineJoin( context, cui.commandIdentityList ) },
+    'identity copy' :           { ro : _.routineJoin( context, cui.commandIdentityCopy ) },
+    'identity set' :            { ro : _.routineJoin( context, cui.commandIdentitySet ) },
+    'identity new' :            { ro : _.routineJoin( context, cui.commandIdentityNew ) },
+    'super identity new' :      { ro : _.routineJoin( context, cui.commandSuperIdentityNew ) },
+    'git identity new' :        { ro : _.routineJoin( context, cui.commandGitIdentityNew ) },
+    'npm identity new' :        { ro : _.routineJoin( context, cui.commandNpmIdentityNew ) },
+    'identity from git' :       { ro : _.routineJoin( context, cui.commandIdentityFromGit ) },
+    'identity from ssh' :       { ro : _.routineJoin( context, cui.commandIdentityFromSsh ) },
+    'identity remove' :         { ro : _.routineJoin( context, cui.commandIdentityRemove ) },
+    'git identity script' :     { ro : _.routineJoin( context, cui.commandGitIdentityScript ) },
+    'npm identity script' :     { ro : _.routineJoin( context, cui.commandNpmIdentityScript ) },
+    'ssh identity script' :     { ro : _.routineJoin( context, cui.commandSshIdentityScript ) },
+    'git identity script set' : { ro : _.routineJoin( context, cui.commandGitIdentityScriptSet ) },
+    'npm identity script set' : { ro : _.routineJoin( context, cui.commandNpmIdentityScriptSet ) },
+    'ssh identity script set' : { ro : _.routineJoin( context, cui.commandSshIdentityScriptSet ) },
+    'super identity use' :      { ro : _.routineJoin( context, cui.commandSuperIdentityUse ) },
+    'git identity use' :        { ro : _.routineJoin( context, cui.commandGitIdentityUse ) },
+    'npm identity use' :        { ro : _.routineJoin( context, cui.commandNpmIdentityUse ) },
+    'ssh identity use' :        { ro : _.routineJoin( context, cui.commandSshIdentityUse ) },
   };
 
-  let ca = _.CommandsAggregator
+  const ca = _.CommandsAggregator
   ({
     basePath : _.path.current(),
     commands,
     commandsImplicitDelimiting : 1,
   });
-
   ca.form();
 
   ca.logger.verbosity = 0;
