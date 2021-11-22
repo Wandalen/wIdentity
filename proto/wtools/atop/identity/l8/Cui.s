@@ -957,7 +957,7 @@ _.Copyable.mixin( Self );
 
 if( typeof module !== 'undefined' )
 module[ 'exports' ] = Self;
-_.censor[ Self.shortName ] = Self;
+_.identity[ Self.shortName ] = Self;
 if( !module.parent )
 Self.Exec();
 
