@@ -99,6 +99,7 @@ function _commandsMake()
     'git identity script set' : { ro : _.routineJoin( cui, cui.commandGitIdentityScriptSet ) },
     'npm identity script set' : { ro : _.routineJoin( cui, cui.commandNpmIdentityScriptSet ) },
     'ssh identity script set' : { ro : _.routineJoin( cui, cui.commandSshIdentityScriptSet ) },
+    'super identity use' :      { ro : _.routineJoin( cui, cui.commandSuperIdentityUse ) },
     'git identity use' :        { ro : _.routineJoin( cui, cui.commandGitIdentityUse ) },
     'npm identity use' :        { ro : _.routineJoin( cui, cui.commandNpmIdentityUse ) },
     'ssh identity use' :        { ro : _.routineJoin( cui, cui.commandSshIdentityUse ) },
@@ -759,6 +760,30 @@ command.longHint = 'Imply profile script to set ssh keys. Accepts js script data
 
 //
 
+function commandSuperIdentityUse( e )
+{
+  const cui = this;
+
+  cui._command_head({ routine : commandSuperIdentityUse, args : arguments });
+
+  e.propertiesMap.logger = e.propertiesMap.verbosity;
+  delete e.propertiesMap.verbosity;
+  e.propertiesMap.selector = e.subject;
+  e.propertiesMap.type = 'super';
+  return _.identity.identityUse( e.propertiesMap );
+}
+commandSuperIdentityUse.defaults =
+{
+  profileDir : 'default',
+  verbosity : 4,
+};
+var command = commandSuperIdentityUse.command = Object.create( null );
+command.subjectHint = 'A name of identity to use.';
+command.hint = 'Set configs for each subidentity using subidentity data.';
+command.longHint = 'Set configs using subidentity data.\n\t"identity .super.identity.use user" - will configure configs using subidentities of identity `user`.';
+
+//
+
 function commandGitIdentityUse( e )
 {
   let cui = this;
@@ -903,6 +928,7 @@ let Extension =
   commandGitIdentityScriptSet,
   commandNpmIdentityScriptSet,
   commandSshIdentityScriptSet,
+  commandSuperIdentityUse,
   commandGitIdentityUse,
   commandNpmIdentityUse,
   commandSshIdentityUse,
