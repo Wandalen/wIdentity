@@ -287,6 +287,92 @@ function identityNew( test )
 
 //
 
+function superIdentityNew( test )
+{
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
+  a.reflect();
+
+  /* - */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and single enabled identity';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:1` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { type : 'super', identities : { user2 : 1 } } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and single disabled identity';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:0` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { type : 'super', identities : { user2 : 0 } } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and several identities';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:0 user3:1` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { type : 'super', identities : { user2 : 0, user3 : 1 } } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'force - 1, rewrite identity';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:0 user3:1` );
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:1 user3:0 force:1` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { type : 'super', identities : { user2 : 1, user3 : 0 } } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* - */
+
+  return a.ready;
+}
+
+//
+
 function gitIdentityNew( test )
 {
   const a = test.assetFor( false );
@@ -1396,6 +1482,7 @@ const Proto =
     identityCopy,
     identitySet,
     identityNew,
+    superIdentityNew,
     gitIdentityNew,
     npmIdentityNew,
     identityFromGit,
