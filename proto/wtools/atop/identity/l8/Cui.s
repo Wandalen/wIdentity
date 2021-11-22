@@ -87,6 +87,7 @@ function _commandsMake()
     'identity copy' :           { ro : _.routineJoin( cui, cui.commandIdentityCopy ) },
     'identity set' :            { ro : _.routineJoin( cui, cui.commandIdentitySet ) },
     'identity new' :            { ro : _.routineJoin( cui, cui.commandIdentityNew ) },
+    'super identity new' :      { ro : _.routineJoin( cui, cui.commandSuperIdentityNew ) },
     'git identity new' :        { ro : _.routineJoin( cui, cui.commandGitIdentityNew ) },
     'npm identity new' :        { ro : _.routineJoin( cui, cui.commandNpmIdentityNew ) },
     'identity from git' :       { ro : _.routineJoin( cui, cui.commandIdentityFromGit ) },
@@ -299,7 +300,7 @@ commandIdentityCopy.defaults =
 var command = commandIdentityCopy.command = Object.create( null );
 command.subjectHint = 'Names of source and destination identities.';
 command.hint = 'Copy data of source identity to destination identity.';
-command.longHint = 'Copy data of source identity to destination identity. Accepts identity names.\n\t"censor .identity.copy \'src.user\' \'dst.user\'" - copy data from identity `src.user` to `dst.user`.\n\t"censor .identity.copy \'src.user\' \'dst.user\' force:1" - will overwrite identity `dst.user` if it exists.';
+command.longHint = 'Copy data of source identity to destination identity. Accepts identity names.\n\t"identity .identity.copy \'src.user\' \'dst.user\'" - copy data from identity `src.user` to `dst.user`.\n\t"identity .identity.copy \'src.user\' \'dst.user\' force:1" - will overwrite identity `dst.user` if it exists.';
 command.properties =
 {
   'force' : 'Copy identity force. Overwrites existed destination identity. Default is false.'
@@ -339,7 +340,7 @@ commandIdentitySet.defaults =
 var command = commandIdentitySet.command = Object.create( null );
 command.subjectHint = 'A name of identity.';
 command.hint = 'Modify an existed identity.';
-command.longHint = 'Modify an existed identity. By default, can\'t create new identity.\n\t"censor .identity.set user \'git.login:user\'" - extend identity `user` by field \'git.login\'.\n\t"censor .identity.set user \'git.login:user\' force:1" - extend identity `user` by field \'git.login\', if identity `user` does not exists, command will create new identity.';
+command.longHint = 'Modify an existed identity. By default, can\'t create new identity.\n\t"identity .identity.set user \'git.login:user\'" - extend identity `user` by field \'git.login\'.\n\t"identity .identity.set user \'git.login:user\' force:1" - extend identity `user` by field \'git.login\', if identity `user` does not exists, command will create new identity.';
 command.properties =
 {
   'identities' : 'A map of identities for superidentity.',
@@ -395,11 +396,53 @@ commandIdentityNew.defaults =
 var command = commandIdentityNew.command = Object.create( null );
 command.subjectHint = 'A name of identity.';
 command.hint = 'Create new identity.';
-command.longHint = 'Create new identity. By default, can\'t rewrite existed identities.\n\t"censor .identity.new user login:user email:user@domain.com type:git" - create new git identity with name `user`.\n\t"censor .identity.new user \'git.login\':user \'git.email\':user@domain.com type:git force:1" - will extend identity `user` if it exists, otherwise, will create new identity.';
+command.longHint = 'Create new identity. By default, can\'t rewrite existed identities.\n\t"identity .identity.new user login:user email:user@domain.com type:git" - create new git identity with name `user`.\n\t"identity .identity.new user \'git.login\':user \'git.email\':user@domain.com type:git force:1" - will extend identity `user` if it exists, otherwise, will create new identity.';
 command.properties =
 {
   ... commandIdentitySet.command.properties,
   'force' : 'Allow to extend identity if identity exists. Default is false.'
+};
+
+//
+
+function commandSuperIdentityNew( e )
+{
+  const cui = this;
+
+  cui._command_head({ routine : commandSuperIdentityNew, args : arguments, propertiesMapAsProperty : 'identities' });
+
+  _.sure
+  (
+    _.mapIs( e.propertiesMap.identities ) && _.entity.lengthOf( e.propertiesMap.identities ),
+    'Expects one or more pair "key:value" to append to the config'
+  );
+
+  if( 'force' in e.propertiesMap.identities )
+  {
+    e.propertiesMap.force = e.propertiesMap.identities.force;
+    delete e.propertiesMap.identities.force;
+  }
+
+  const identity = Object.create( null );
+  identity.name = e.subject;
+  identity.type = 'super';
+  identity.identities = e.propertiesMap.identities;
+  delete e.propertiesMap.identities;
+  e.propertiesMap.identity = identity;
+  return _.identity.identityNew( e.propertiesMap );
+}
+
+commandSuperIdentityNew.defaults =
+{
+  profileDir : 'default',
+};
+
+var command = commandSuperIdentityNew.command = Object.create( null );
+command.subjectHint = 'A name of identity.';
+command.hint = 'Create new superidentity.';
+command.longHint = 'Create new super identity. By default, can\'t rewrite existed identities.\n\t"identity .super.identity.new user user2:true" - create new superidentity with name `user`.\n\t"identity .super.identity.new user user2:false force:1" - will extend identity `user` if it exists, otherwise, will create new super identity.';
+command.properties =
+{
 };
 
 //
@@ -416,7 +459,7 @@ function commandGitIdentityNew( e )
     _.mapIs( e.propertiesMap.identity ) && _.entity.lengthOf( e.propertiesMap.identity ),
     'Expects one or more pair "key:value" to append to the config'
   );
-  _.map.sureHasOnly( e.propertiesMap.identity, commandIdentityNew.command.properties );
+  _.map.sureHasOnly( e.propertiesMap.identity, commandGitIdentityNew.command.properties );
 
   if( 'force' in e.propertiesMap.identity )
   {
@@ -442,7 +485,7 @@ commandGitIdentityNew.defaults =
 var command = commandGitIdentityNew.command = Object.create( null );
 command.subjectHint = 'A name of identity.';
 command.hint = 'Create new git identity.';
-command.longHint = 'Create new git identity. By default, can\'t rewrite existed identities.\n\t"censor .git.identity.new user login:user email:user@domain.com" - create new git identity with name `user`.\n\t"censor .git.identity.new user login:user email:user@domain.com force:1" - will extend identity `user` if it exists, otherwise, will create new git identity.';
+command.longHint = 'Create new git identity. By default, can\'t rewrite existed identities.\n\t"identity .git.identity.new user login:user email:user@domain.com" - create new git identity with name `user`.\n\t"identity .git.identity.new user login:user email:user@domain.com force:1" - will extend identity `user` if it exists, otherwise, will create new git identity.';
 command.properties =
 {
   'login' : 'An identity git login ( user name ) that is used for git script.',
@@ -465,7 +508,7 @@ function commandNpmIdentityNew( e )
     _.mapIs( e.propertiesMap.identity ) && _.entity.lengthOf( e.propertiesMap.identity ),
     'Expects one or more pair "key:value" to append to the config'
   );
-  _.map.sureHasOnly( e.propertiesMap.identity, commandIdentityNew.command.properties );
+  _.map.sureHasOnly( e.propertiesMap.identity, commandNpmIdentityNew.command.properties );
 
   if( 'force' in e.propertiesMap.identity )
   {
@@ -491,7 +534,7 @@ commandNpmIdentityNew.defaults =
 var command = commandNpmIdentityNew.command = Object.create( null );
 command.subjectHint = 'A name of identity.';
 command.hint = 'Create new npm identity.';
-command.longHint = 'Create new npm identity. By default, can\'t rewrite existed identities.\n\t"censor .npm.identity.new user login:user email:user@domain.com" - create new npm identity with name `user`.\n\t"censor .npm.identity.new user login:user email:user@domain.com force:1" - will extend identity `user` if it exists, otherwise, will create new npm identity.';
+command.longHint = 'Create new npm identity. By default, can\'t rewrite existed identities.\n\t"identity .npm.identity.new user login:user email:user@domain.com" - create new npm identity with name `user`.\n\t"identity .npm.identity.new user login:user email:user@domain.com force:1" - will extend identity `user` if it exists, otherwise, will create new npm identity.';
 command.properties =
 {
   'login' : 'An identity git login ( user name ) that is used for git script.',
@@ -523,7 +566,7 @@ commandIdentityFromGit.defaults =
 var command = commandIdentityFromGit.command = Object.create( null );
 command.subjectHint = 'A name of destination identity.';
 command.hint = 'Create new git identity.';
-command.longHint = 'Create new git identity. By default, can\'t rewrite existed identities.\n\t"censor .identity.from.git user" - will create new git identity from global git config.\n\t"censor .identity.from.git user force:1" - will extend identity `user` if it exists, otherwise, will create new git identity.';
+command.longHint = 'Create new git identity. By default, can\'t rewrite existed identities.\n\t"identity .identity.from.git user" - will create new git identity from global git config.\n\t"identity .identity.from.git user force:1" - will extend identity `user` if it exists, otherwise, will create new git identity.';
 command.properties =
 {
   'force' : 'Allow to extend identity if the identity exists. Default is false.'
@@ -552,7 +595,7 @@ commandIdentityFromSsh.defaults =
 var command = commandIdentityFromSsh.command = Object.create( null );
 command.subjectHint = 'A name of destination identity.';
 command.hint = 'Create new ssh identity.';
-command.longHint = 'Create new ssh identity. By default, can\'t rewrite existed identities.\n\t"censor .identity.from.ssh user" - will create new ssh identity from current ssh keys storage.\n\t"censor .identity.from.ssh user force:1" - will extend identity `user` if it exists, otherwise, will create new ssh identity.';
+command.longHint = 'Create new ssh identity. By default, can\'t rewrite existed identities.\n\t"identity .identity.from.ssh user" - will create new ssh identity from current ssh keys storage.\n\t"identity .identity.from.ssh user force:1" - will extend identity `user` if it exists, otherwise, will create new ssh identity.';
 command.properties =
 {
   'force' : 'Allow to extend identity if the identity exists. Default is false.'
@@ -578,7 +621,7 @@ commandIdentityRemove.defaults =
 var command = commandIdentityRemove.command = Object.create( null );
 command.subjectHint = 'A name of identity to remove. Could be selectors.';
 command.hint = 'Remove identity.';
-command.longHint = 'Remove identity by name.\n\t"censor .identity.remove user" - will remove identity `user`.\n\t"censor .identity.remove user*" - will remove all identities which starts with `user`.';
+command.longHint = 'Remove identity by name.\n\t"identity .identity.remove user" - will remove identity `user`.\n\t"identity .identity.remove user*" - will remove all identities which starts with `user`.';
 
 //
 
@@ -600,7 +643,7 @@ commandGitIdentityScript.defaults =
 var command = commandGitIdentityScript.command = Object.create( null );
 command.subjectHint = false;
 command.hint = 'Get profile git script.';
-command.longHint = 'Get profile git script.\n\t"censor .git.identity.script" - will print git script of default profile.';
+command.longHint = 'Get profile git script.\n\t"identity .git.identity.script" - will print git script of default profile.';
 
 //
 
@@ -622,7 +665,7 @@ commandNpmIdentityScript.defaults =
 var command = commandNpmIdentityScript.command = Object.create( null );
 command.subjectHint = false;
 command.hint = 'Get profile npm script.';
-command.longHint = 'Get profile npm script.\n\t"censor .npm.identity.script" - will print npm script of default profile.';
+command.longHint = 'Get profile npm script.\n\t"identity .npm.identity.script" - will print npm script of default profile.';
 
 //
 
@@ -644,7 +687,7 @@ commandSshIdentityScript.defaults =
 var command = commandSshIdentityScript.command = Object.create( null );
 command.subjectHint = false;
 command.hint = 'Get profile ssh script.';
-command.longHint = 'Get profile ssh script.\n\t"censor .ssh.identity.script" - will print ssh script of default profile.';
+command.longHint = 'Get profile ssh script.\n\t"identity .ssh.identity.script" - will print ssh script of default profile.';
 
 //
 
@@ -666,7 +709,7 @@ commandGitIdentityScriptSet.defaults =
 var command = commandGitIdentityScriptSet.command = Object.create( null );
 command.subjectHint = 'A script to set.';
 command.hint = 'Imply profile script to set git config.';
-command.longHint = 'Imply profile script to set git config. Accepts js script data.\n\t"censor .git.identity.script.set $(cat script.js)" - will set `script.js` as default git script for default profile (example is valid for Unix-like OSs).';
+command.longHint = 'Imply profile script to set git config. Accepts js script data.\n\t"identity .git.identity.script.set $(cat script.js)" - will set `script.js` as default git script for default profile (example is valid for Unix-like OSs).';
 
 //
 
@@ -689,7 +732,7 @@ commandNpmIdentityScriptSet.defaults =
 var command = commandNpmIdentityScriptSet.command = Object.create( null );
 command.subjectHint = 'A script to set.';
 command.hint = 'Imply profile script to set npm config.';
-command.longHint = 'Imply profile script to set npm config. Accepts js script data.\n\t"censor .npm.identity.script.set $(cat script.js)" - will set `script.js` as default npm script for default profile (example is valid for Unix-like OSs).';
+command.longHint = 'Imply profile script to set npm config. Accepts js script data.\n\t"identity .npm.identity.script.set $(cat script.js)" - will set `script.js` as default npm script for default profile (example is valid for Unix-like OSs).';
 
 //
 
@@ -712,7 +755,7 @@ commandSshIdentityScriptSet.defaults =
 var command = commandSshIdentityScriptSet.command = Object.create( null );
 command.subjectHint = 'A script to set.';
 command.hint = 'Imply profile script to set ssh keys.';
-command.longHint = 'Imply profile script to set ssh keys. Accepts js script data.\n\t"censor .ssh.identity.script.set $(cat script.js)" - will set `script.js` as default ssh script for default profile (example is valid for Unix-like OSs).';
+command.longHint = 'Imply profile script to set ssh keys. Accepts js script data.\n\t"identity .ssh.identity.script.set $(cat script.js)" - will set `script.js` as default ssh script for default profile (example is valid for Unix-like OSs).';
 
 //
 
@@ -737,7 +780,7 @@ commandGitIdentityUse.defaults =
 var command = commandGitIdentityUse.command = Object.create( null );
 command.subjectHint = 'A name of identity to use.';
 command.hint = 'Set git configs using identity data.';
-command.longHint = 'Set git configs using identity data.\n\t"censor .git.identity.use user" - will configure git using identity `user` script and data.';
+command.longHint = 'Set git configs using identity data.\n\t"identity .git.identity.use user" - will configure git using identity `user` script and data.';
 
 //
 
@@ -762,7 +805,7 @@ commandNpmIdentityUse.defaults =
 var command = commandNpmIdentityUse.command = Object.create( null );
 command.subjectHint = 'A name of identity to use.';
 command.hint = 'Set npm configs using identity data.';
-command.longHint = 'Set npm configs using identity data.\n\t"censor .npm.identity.use user" - will configure npm using identity `user` script and data.';
+command.longHint = 'Set npm configs using identity data.\n\t"identity .npm.identity.use user" - will configure npm using identity `user` script and data.';
 
 //
 
@@ -787,7 +830,7 @@ commandSshIdentityUse.defaults =
 var command = commandSshIdentityUse.command = Object.create( null );
 command.subjectHint = 'A name of identity to use.';
 command.hint = 'Set ssh keys using identity data.';
-command.longHint = 'Set ssh keys using identity data.\n\t"censor .ssh.identity.use user" - will configure ssh using identity `user` script and data.';
+command.longHint = 'Set ssh keys using identity data.\n\t"identity .ssh.identity.use user" - will configure ssh using identity `user` script and data.';
 
 // --
 // relations
@@ -848,6 +891,7 @@ let Extension =
   commandIdentityCopy,
   commandIdentitySet,
   commandIdentityNew,
+  commandSuperIdentityNew,
   commandGitIdentityNew,
   commandNpmIdentityNew,
   commandIdentityFromGit,
