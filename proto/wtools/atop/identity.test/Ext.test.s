@@ -287,6 +287,92 @@ function identityNew( test )
 
 //
 
+function superIdentityNew( test )
+{
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
+  a.reflect();
+
+  /* - */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and single enabled identity';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:1` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { type : 'super', identities : { user2 : 1 } } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and single disabled identity';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:0` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { type : 'super', identities : { user2 : 0 } } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and several identities';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:0 user3:1` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { type : 'super', identities : { user2 : 0, user3 : 1 } } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'force - 1, rewrite identity';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:0 user3:1` );
+  a.appStart( `.imply profile:${profile} .super.identity.new user user2:1 user3:0 force:1` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { type : 'super', identities : { user2 : 1, user3 : 0 } } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* - */
+
+  return a.ready;
+}
+
+//
+
 function gitIdentityNew( test )
 {
   const a = test.assetFor( false );
@@ -1039,6 +1125,118 @@ module.exports = onIdentity;
 
 //
 
+function superIdentityUse( test )
+{
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
+
+  if( !_.process.insideTestContainer() )
+  return test.true( true );
+
+  a.fileProvider.dirMake( a.abs( '.' ) );
+  const originalConfig = a.fileProvider.fileRead( a.fileProvider.configUserPath( '.gitconfig' ) );
+
+  const script =
+`
+function onIdentity( identity )
+{
+  console.log( identity );
+}
+module.exports = onIdentity;
+`;
+
+  /* - */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'superidentity with two identities, both are enabled';
+    a.fileProvider.fileWrite( a.fileProvider.configUserPath( '.gitconfig' ), '' );
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .identity.new user login:userLogin type:git email:'user@domain.com'` );
+  a.appStart( `.imply profile:${profile} .identity.new user2 login:userLogin2 type:npm email:'user2@domain.com'` );
+  a.appStart( `.imply profile:${profile} .super.identity.new superuser user:1 user2:1` );
+  a.appStart( `.imply profile:${profile} .git.identity.script.set '${ script }'` )
+  a.appStart( `.imply profile:${profile} .npm.identity.script.set '${ script }'` )
+
+  a.appStart( `.imply profile:${profile} .super.identity.use superuser` )
+  .then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    test.identical( _.strCount( op.output, '{ login: \'userLogin\', type: \'git\', email: \'user@domain.com\' }' ), 1 );
+    test.identical( _.strCount( op.output, '{ login: \'userLogin2\', type: \'npm\', email: \'user2@domain.com\' }' ), 1 );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'superidentity with two identities, one - enabled, the other - disabled';
+    a.fileProvider.fileWrite( a.fileProvider.configUserPath( '.gitconfig' ), '' );
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .identity.new user login:userLogin type:git email:'user@domain.com'` );
+  a.appStart( `.imply profile:${profile} .identity.new user2 login:userLogin2 type:npm email:'user2@domain.com'` );
+  a.appStart( `.imply profile:${profile} .super.identity.new superuser user:0 user2:1` );
+  a.appStart( `.imply profile:${profile} .git.identity.script.set '${ script }'` )
+  a.appStart( `.imply profile:${profile} .npm.identity.script.set '${ script }'` )
+
+  a.appStart( `.imply profile:${profile} .super.identity.use superuser` )
+  .then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    test.identical( _.strCount( op.output, '{ login: \'userLogin\', type: \'git\', email: \'user@domain.com\' }' ), 0 );
+    test.identical( _.strCount( op.output, '{ login: \'userLogin2\', type: \'npm\', email: \'user2@domain.com\' }' ), 1 );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'superidentity with two identities, both disabled';
+    a.fileProvider.fileWrite( a.fileProvider.configUserPath( '.gitconfig' ), '' );
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .identity.new user login:userLogin type:git email:'user@domain.com'` );
+  a.appStart( `.imply profile:${profile} .identity.new user2 login:userLogin2 type:npm email:'user2@domain.com'` );
+  a.appStart( `.imply profile:${profile} .super.identity.new superuser user:0 user2:0` );
+  a.appStart( `.imply profile:${profile} .git.identity.script.set '${ script }'` )
+  a.appStart( `.imply profile:${profile} .npm.identity.script.set '${ script }'` )
+
+  a.appStart( `.imply profile:${profile} .super.identity.use superuser` )
+  .then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    test.identical( _.strCount( op.output, '{ login: \'userLogin\', type: \'git\', email: \'user@domain.com\' }' ), 0 );
+    test.identical( _.strCount( op.output, '{ login: \'userLogin2\', type: \'npm\', email: \'user2@domain.com\' }' ), 0 );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.finally( ( err, arg ) =>
+  {
+    a.fileProvider.fileWrite( a.fileProvider.configUserPath( '.gitconfig' ), originalConfig );
+    if( err )
+    throw _.err( err );
+    return arg;
+  });
+
+  /* - */
+
+  return a.ready;
+}
+
+//
+
 function gitIdentityUse( test )
 {
   const a = test.assetFor( false );
@@ -1143,30 +1341,30 @@ module.exports = onIdentity;
 
   /* */
 
-  // a.ready.then( ( op ) => /* qqq : for Dmytro : repair */
-  // {
-  //   test.case = 'custom user script, type - super';
-  //   a.fileProvider.fileWrite( a.fileProvider.configUserPath( '.gitconfig' ), '' );
-  //   return null;
-  // });
-  //
-  // a.appStart( `.imply profile:${profile} .identity.new user login:userLogin email:'user@domain.com' type:git` );
-  // a.appStart( `.imply profile:${profile} .identity.new user2 type:super identities:{user:true}` );
-  // a.appStart( `.imply profile:${profile} .git.identity.script.set '${ script }'` )
-  // a.appStart( `.imply profile:${profile} .git.identity.use user2` )
-  // .then( ( op ) =>
-  // {
-  //   test.identical( op.exitCode, 0 );
-  //   test.identical( _.strCount( op.output, '{ login: \'userLogin\', email: \'user@domain.com\', type: \'git\' }' ), 1 );
-  //   return null;
-  // });
-  // a.shell( 'git config --global --list' )
-  // .then( ( op ) =>
-  // {
-  //   test.identical( op.output, '' );
-  //   return null;
-  // });
-  // a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'custom user script, type - super';
+    a.fileProvider.fileWrite( a.fileProvider.configUserPath( '.gitconfig' ), '' );
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .identity.new user login:userLogin email:'user@domain.com' type:git` );
+  a.appStart( `.imply profile:${profile} .identity.new user2 type:super identities:user` );
+  a.appStart( `.imply profile:${profile} .git.identity.script.set '${ script }'` )
+  a.appStart( `.imply profile:${profile} .git.identity.use user2` )
+  .then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    test.identical( _.strCount( op.output, '{ login: \'userLogin\', email: \'user@domain.com\', type: \'git\' }' ), 1 );
+    return null;
+  });
+  a.shell( 'git config --global --list' )
+  .then( ( op ) =>
+  {
+    test.identical( op.output, '' );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -1221,22 +1419,23 @@ module.exports = onIdentity;
 
   /* */
 
-  // a.ready.then( ( op ) => /* qqq2 : for Dmytro : repair */
-  // {
-  //   test.case = 'custom user script, type - general';
-  //   return null;
-  // });
-  //
-  // a.appStart( `.imply profile:${profile} .identity.new user login:userLogin email:'user@domain.com'` );
-  // a.appStart( `.imply profile:${profile} .npm.identity.script.set '${ script }'` )
-  // a.appStart( `.imply profile:${profile} .npm.identity.use user` )
-  // .then( ( op ) =>
-  // {
-  //   test.identical( op.exitCode, 0 );
-  //   test.identical( _.strCount( op.output, '{ login: \'userLogin\', email: \'user@domain.com\', type: \'general\' }' ), 1 );
-  //   return null;
-  // });
-  // a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'custom user script, type - super';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .identity.new user login:userLogin email:'user@domain.com' type:npm` );
+  a.appStart( `.imply profile:${profile} .identity.new user2 type:super identities:user` );
+  a.appStart( `.imply profile:${profile} .npm.identity.script.set '${ script }'` );
+  a.appStart( `.imply profile:${profile} .npm.identity.use user` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    test.identical( _.strCount( op.output, '{ login: \'userLogin\', email: \'user@domain.com\', type: \'npm\' }' ), 1 );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* - */
 
@@ -1295,27 +1494,27 @@ module.exports = onIdentity;
 
   /* */
 
-  // a.ready.then( ( op ) => /* qqq2 : for Dmytro : repair */
-  // {
-  //   test.case = 'custom user script, type - general';
-  //   return null;
-  // });
-  //
-  // a.appStart( `.imply profile:${profile} .identity.from.ssh user` )
-  // a.appStart( `.imply profile:${profile} .identity.set user login:userLogin type:general email:'user@domain.com'` );
-  // a.appStart( `.imply profile:${profile} .ssh.identity.script.set '${ script }'` )
-  // a.appStart( `.imply profile:${profile} .ssh.identity.use user` )
-  // .then( ( op ) =>
-  // {
-  //   test.identical( op.exitCode, 0 );
-  //   test.identical( _.strCount( op.output, 'login: \'userLogin\',' ), 1 );
-  //   test.identical( _.strCount( op.output, 'email: \'user@domain.com\'' ), 1 );
-  //   test.identical( _.strCount( op.output, 'type: \'general\',' ), 1 );
-  //   test.identical( _.strCount( op.output, '\'ssh.login\': \'user\',' ), 1 );
-  //   test.identical( _.strCount( op.output, `'ssh.path': '.censor/${profile}/ssh/user'` ), 1 );
-  //   return null;
-  // });
-  // a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'custom user script, type - general';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .identity.from.ssh user` );
+  a.appStart( `.imply profile:${profile} .identity.new user2 type:super identities:user` );
+  a.appStart( `.imply profile:${profile} .ssh.identity.script.set '${ script }'` )
+  a.appStart( `.imply profile:${profile} .ssh.identity.use user` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    test.identical( _.strCount( op.output, '\'ssh.login\': \'user\',' ), 1 );
+    test.identical( _.strCount( op.output, 'email: \'user@domain.com\'' ), 0 );
+    test.identical( _.strCount( op.output, 'type: \'ssh\',' ), 1 );
+    test.identical( _.strCount( op.output, '\'ssh.login\': \'user\',' ), 1 );
+    test.identical( _.strCount( op.output, `'ssh.path': '.censor/${profile}/ssh/user'` ), 1 );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
 
   /* */
 
@@ -1395,6 +1594,7 @@ const Proto =
     identityCopy,
     identitySet,
     identityNew,
+    superIdentityNew,
     gitIdentityNew,
     npmIdentityNew,
     identityFromGit,
@@ -1406,6 +1606,7 @@ const Proto =
     gitIdentityScriptSet,
     npmIdentityScriptSet,
     sshIdentityScriptSet,
+    superIdentityUse,
     gitIdentityUse,
     npmIdentityUse,
     sshIdentityUse,
