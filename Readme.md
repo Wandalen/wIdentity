@@ -22,7 +22,6 @@ node sample/trivial/Sample.s
 
 Make sure you have utility `willbe` installed. To install willbe: `npm i -g willbe@stable`. Willbe is required to build of the module.
 
-
 ### To install
 ```
 npm i -g 'widentity@stable'
