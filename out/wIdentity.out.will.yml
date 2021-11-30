@@ -3,8 +3,8 @@ root:
   - wIdentity.out
 consistency:
   ../will.yml: &ref_0
-    hash: 75c7d466d33aa942b5cfb3825cd3db10
-    size: 6489
+    hash: ad5fd15a6969798332a59fddf0ced71c
+    size: 6497
 module:
   wIdentity.out:
     about:
@@ -1462,5 +1462,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: 75c7d466d33aa942b5cfb3825cd3db10
-        size: 6489
+        hash: ad5fd15a6969798332a59fddf0ced71c
+        size: 6497
