@@ -24,10 +24,10 @@
     "url": "https://github.com/Wandalen/wIdentity.git"
   },
   "bin": {
-    "identity.singleproc": "proto/wtools/atop/censor/entry/Exec",
-    "identity.debug": "proto/wtools/atop/censor/entry/ExecDebug",
-    "identity.unrestricted": "proto/wtools/atop/censor/entry/ExecUnrestricted",
-    "identity": "proto/wtools/atop/censor/entry/ExecUnrestricted"
+    "identity.singleproc": "proto/wtools/atop/identity/entry/Exec",
+    "identity.debug": "proto/wtools/atop/identity/entry/ExecDebug",
+    "identity.unrestricted": "proto/wtools/atop/identity/entry/ExecUnrestricted",
+    "identity": "proto/wtools/atop/identity/entry/ExecUnrestricted"
   },
   "bugs": {
     "url": "https://github.com/Wandalen/wIdentity/issues"
