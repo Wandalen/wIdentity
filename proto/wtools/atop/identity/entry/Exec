@@ -2,9 +2,4 @@
 
 const _ = require( '../include/Top.s' );
 module[ 'exports' ] = _;
-<<<<<<< HEAD
-_.censor.Cui.Exec();
-=======
 _.identity.Cui.Exec();
-
->>>>>>> f8046940a6637df5f599ec9fca6cccb8a4db5624
