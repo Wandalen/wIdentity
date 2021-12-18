@@ -1,6 +1,6 @@
 {
   "name": "widentity",
-  "version": "0.2.192",
+  "version": "0.2.193",
   "description": "Utility to manage profiles for different utilities.",
   "author": "Kostiantyn Wandalen <wandalen@obox.systems>",
   "contributors": [
@@ -33,14 +33,14 @@
     "url": "https://github.com/Wandalen/wIdentity/issues"
   },
   "dependencies": {
-    "wTools": "delta",
-    "widentitybasic": "delta",
-    "wCopyable": "delta",
-    "wcommandsaggregator": "delta",
-    "wcensorbasic": "delta"
+    "wTools": "alpha",
+    "widentitybasic": "alpha",
+    "wCopyable": "alpha",
+    "wcommandsaggregator": "alpha",
+    "wcensorbasic": "alpha"
   },
   "devDependencies": {
-    "wTesting": "delta",
+    "wTesting": "alpha",
     "eslint": "7.32.0"
   },
   "keywords": [
