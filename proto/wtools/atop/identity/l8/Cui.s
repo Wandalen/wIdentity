@@ -94,6 +94,8 @@ function _commandsMake( context )
     'identity new' :            { ro : _.routineJoin( context, cui.commandIdentityNew ) },
     'super identity new' :      { ro : _.routineJoin( context, cui.commandSuperIdentityNew ) },
     'git identity new' :        { ro : _.routineJoin( context, cui.commandGitIdentityNew ) },
+    'github identity new' :     { ro : _.routineJoin( context, cui.commandGithubIdentityNew ) },
+    'bitbucket identity new' :  { ro : _.routineJoin( context, cui.commandBitbucketIdentityNew ) },
     'npm identity new' :        { ro : _.routineJoin( context, cui.commandNpmIdentityNew ) },
     'identity from git' :       { ro : _.routineJoin( context, cui.commandIdentityFromGit ) },
     'identity from ssh' :       { ro : _.routineJoin( context, cui.commandIdentityFromSsh ) },
@@ -513,6 +515,14 @@ const commandGitIdentityNew = _commandIdentityNew_functor( 'git' );
 
 //
 
+const commandGithubIdentityNew = _commandIdentityNew_functor( 'github' );
+
+//
+
+const commandBitbucketIdentityNew = _commandIdentityNew_functor( 'bitbucket' );
+
+//
+
 const commandNpmIdentityNew = _commandIdentityNew_functor( 'npm' );
 
 //
@@ -886,10 +896,14 @@ let Extension =
   commandIdentityList,
   commandIdentityCopy,
   commandIdentitySet,
+
   commandIdentityNew,
   commandSuperIdentityNew,
   commandGitIdentityNew,
+  commandGithubIdentityNew,
+  commandBitbucketIdentityNew,
   commandNpmIdentityNew,
+
   commandIdentityFromGit,
   commandIdentityFromSsh,
   commandIdentityRemove,
