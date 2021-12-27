@@ -452,101 +452,68 @@ command.properties =
 
 //
 
-function commandGitIdentityNew( e )
+function _commandIdentityNew_functor( type )
 {
-  let cui = this;
-  let ca = e.aggregator;
-
-  cui._command_head({ routine : commandGitIdentityNew, args : arguments, propertiesMapAsProperty : 'identity' });
-
-  _.sure
-  (
-    _.mapIs( e.propertiesMap.identity ) && _.entity.lengthOf( e.propertiesMap.identity ),
-    'Expects one or more pair "key:value" to append to the config'
-  );
-  _.map.sureHasOnly( e.propertiesMap.identity, commandGitIdentityNew.command.properties );
-
-  if( 'force' in e.propertiesMap.identity )
+  const routine = identityNew;
+  routine.defaults =
   {
-    e.propertiesMap.force = e.propertiesMap.identity.force;
-    delete e.propertiesMap.identity.force;
-  }
+    profileDir : 'default',
+  };
 
-  for( let key in e.propertiesMap.identity )
+  var command = routine.command = Object.create( null );
+  command.subjectHint = 'A name of identity.';
+  command.hint = `Create new ${ type } identity.`;
+  command.longHint = `Create new ${ type } identity. By default, can\'t rewrite existed identities.\n\t"identity .${ type }.identity.new user login:user email:user@domain.com" - create new npm identity with name 'user'.\n\t"identity .${ type }.identity.new user login:user email:user@domain.com force:1" - will extend identity 'user' if it exists, otherwise, will create new ${ type } identity.`;
+  command.properties =
   {
-    e.propertiesMap.identity[ `git.${ key }` ] = e.propertiesMap.identity[ key ];
-    delete e.propertiesMap.identity[ key ];
+    'login' : `An identity ${ type } login ( user name ) that is used for git script.`,
+    'email' : `An email that is used for ${ type } script.`,
+    'token' : 'A token that is used for git script.',
+    'force' : 'Create new identity force. Overwrites existed identity. Default is false.'
+  };
+
+  return routine;
+
+  /* */
+
+  function identityNew( e )
+  {
+    let cui = this;
+    let ca = e.aggregator;
+
+    cui._command_head({ routine, args : arguments, propertiesMapAsProperty : 'identity' });
+
+    _.sure
+    (
+      _.mapIs( e.propertiesMap.identity ) && _.entity.lengthOf( e.propertiesMap.identity ),
+      'Expects one or more pair "key:value" to append to the config'
+    );
+    _.map.sureHasOnly( e.propertiesMap.identity, routine.command.properties );
+
+    if( 'force' in e.propertiesMap.identity )
+    {
+      e.propertiesMap.force = e.propertiesMap.identity.force;
+      delete e.propertiesMap.identity.force;
+    }
+
+    for( let key in e.propertiesMap.identity )
+    {
+      e.propertiesMap.identity[ `${ type }.${ key }` ] = e.propertiesMap.identity[ key ];
+      delete e.propertiesMap.identity[ key ];
+    }
+    e.propertiesMap.identity.name = e.subject;
+    e.propertiesMap.identity.type = type;
+    return _.identity.identityNew( e.propertiesMap );
   }
-  e.propertiesMap.identity.name = e.subject;
-  e.propertiesMap.identity.type = 'git';
-  return _.identity.identityNew( e.propertiesMap );
 }
-
-commandGitIdentityNew.defaults =
-{
-  profileDir : 'default',
-};
-
-var command = commandGitIdentityNew.command = Object.create( null );
-command.subjectHint = 'A name of identity.';
-command.hint = 'Create new git identity.';
-command.longHint = 'Create new git identity. By default, can\'t rewrite existed identities.\n\t"identity .git.identity.new user login:user email:user@domain.com" - create new git identity with name `user`.\n\t"identity .git.identity.new user login:user email:user@domain.com force:1" - will extend identity `user` if it exists, otherwise, will create new git identity.';
-command.properties =
-{
-  'login' : 'An identity git login ( user name ) that is used for git script.',
-  'email' : 'An email that is used for git script.',
-  'token' : 'A token that is used for git script.',
-  'force' : 'Create new identity force. Overwrites existed identity. Default is false.'
-};
 
 //
 
-function commandNpmIdentityNew( e )
-{
-  let cui = this;
-  let ca = e.aggregator;
+const commandGitIdentityNew = _commandIdentityNew_functor( 'git' );
 
-  cui._command_head({ routine : commandNpmIdentityNew, args : arguments, propertiesMapAsProperty : 'identity' });
+//
 
-  _.sure
-  (
-    _.mapIs( e.propertiesMap.identity ) && _.entity.lengthOf( e.propertiesMap.identity ),
-    'Expects one or more pair "key:value" to append to the config'
-  );
-  _.map.sureHasOnly( e.propertiesMap.identity, commandNpmIdentityNew.command.properties );
-
-  if( 'force' in e.propertiesMap.identity )
-  {
-    e.propertiesMap.force = e.propertiesMap.identity.force;
-    delete e.propertiesMap.identity.force;
-  }
-
-  for( let key in e.propertiesMap.identity )
-  {
-    e.propertiesMap.identity[ `npm.${ key }` ] = e.propertiesMap.identity[ key ];
-    delete e.propertiesMap.identity[ key ];
-  }
-  e.propertiesMap.identity.name = e.subject;
-  e.propertiesMap.identity.type = 'npm';
-  return _.identity.identityNew( e.propertiesMap );
-}
-
-commandNpmIdentityNew.defaults =
-{
-  profileDir : 'default',
-};
-
-var command = commandNpmIdentityNew.command = Object.create( null );
-command.subjectHint = 'A name of identity.';
-command.hint = 'Create new npm identity.';
-command.longHint = 'Create new npm identity. By default, can\'t rewrite existed identities.\n\t"identity .npm.identity.new user login:user email:user@domain.com" - create new npm identity with name `user`.\n\t"identity .npm.identity.new user login:user email:user@domain.com force:1" - will extend identity `user` if it exists, otherwise, will create new npm identity.';
-command.properties =
-{
-  'login' : 'An identity git login ( user name ) that is used for git script.',
-  'email' : 'An email that is used for git script.',
-  'token' : 'A token that is used for git script.',
-  'force' : 'Create new identity force. Overwrites existed identity. Default is false.'
-};
+const commandNpmIdentityNew = _commandIdentityNew_functor( 'npm' );
 
 //
 
