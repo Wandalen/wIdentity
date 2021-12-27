@@ -429,6 +429,62 @@ function gitIdentityNew( test )
 
 //
 
+function githubIdentityNew( test )
+{
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
+  a.reflect();
+
+  /* - */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and login';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .github.identity.new user login:userLogin` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { 'github.login' : 'userLogin', 'type' : 'github' } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and login, user fields';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .github.identity.new user login:userLogin email:user@domain.com token:123` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    var exp =
+    {
+      'github.login' : 'userLogin',
+      'type' : 'github',
+      'github.email' : 'user@domain.com',
+      'github.token' : 123
+    };
+    test.identical( config.identity.user, exp );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* - */
+
+  return a.ready;
+}
+
+//
+
 function npmIdentityNew( test )
 {
   const a = test.assetFor( false );
@@ -1596,6 +1652,7 @@ const Proto =
     identityNew,
     superIdentityNew,
     gitIdentityNew,
+    githubIdentityNew,
     npmIdentityNew,
     identityFromGit,
     identityFromSsh,
