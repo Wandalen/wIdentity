@@ -485,6 +485,62 @@ function githubIdentityNew( test )
 
 //
 
+function bitbucketIdentityNew( test )
+{
+  const a = test.assetFor( false );
+  const profile = `censor-test-${ __.intRandom( 1000000 ) }`;
+  a.reflect();
+
+  /* - */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and login';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .bitbucket.identity.new user login:userLogin` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    test.identical( config.identity.user, { 'bitbucket.login' : 'userLogin', 'type' : 'bitbucket' } );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* */
+
+  a.ready.then( ( op ) =>
+  {
+    test.case = 'subject and login, user fields';
+    return null;
+  });
+
+  a.appStart( `.imply profile:${profile} .bitbucket.identity.new user login:userLogin email:user@domain.com token:123` );
+  a.ready.then( ( op ) =>
+  {
+    test.identical( op.exitCode, 0 );
+    var config = _.censor.configRead({ profileDir : profile });
+    var exp =
+    {
+      'bitbucket.login' : 'userLogin',
+      'type' : 'bitbucket',
+      'bitbucket.email' : 'user@domain.com',
+      'bitbucket.token' : 123
+    };
+    test.identical( config.identity.user, exp );
+    return null;
+  });
+  a.ready.finally( () => { _.censor.profileDel( profile ); return null });
+
+  /* - */
+
+  return a.ready;
+}
+
+//
+
 function npmIdentityNew( test )
 {
   const a = test.assetFor( false );
@@ -1653,6 +1709,7 @@ const Proto =
     superIdentityNew,
     gitIdentityNew,
     githubIdentityNew,
+    bitbucketIdentityNew,
     npmIdentityNew,
     identityFromGit,
     identityFromSsh,

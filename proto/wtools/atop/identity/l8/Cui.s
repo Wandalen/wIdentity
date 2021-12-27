@@ -465,7 +465,10 @@ function _commandIdentityNew_functor( type )
   var command = routine.command = Object.create( null );
   command.subjectHint = 'A name of identity.';
   command.hint = `Create new ${ type } identity.`;
-  command.longHint = `Create new ${ type } identity. By default, can\'t rewrite existed identities.\n\t"identity .${ type }.identity.new user login:user email:user@domain.com" - create new npm identity with name 'user'.\n\t"identity .${ type }.identity.new user login:user email:user@domain.com force:1" - will extend identity 'user' if it exists, otherwise, will create new ${ type } identity.`;
+  command.longHint = `Create new ${ type } identity. By default, can\'t rewrite existed identities.`
+  + `\n\t"identity .${ type }.identity.new user login:user email:user@domain.com" - create new npm identity with name 'user'.`
+  + `\n\t"identity .${ type }.identity.new user login:user email:user@domain.com force:1" - will extend identity 'user' if it `
+  + `exists, otherwise, will create new ${ type } identity.`;
   command.properties =
   {
     'login' : `An identity ${ type } login ( user name ) that is used for git script.`,
